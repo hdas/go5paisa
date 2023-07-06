@@ -3,20 +3,22 @@ package go5paisa
 import (
 	"bytes"
 	"encoding/json"
-	// "fmt"
 	"errors"
-	"golang.org/x/net/publicsuffix"
+	"fmt"
 	"io/ioutil"
-	// "log"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 const (
 	baseURL string = "https://Openapi.5paisa.com/VendorsAPI/Service1.svc"
 
 	loginRoute          string = "/V2/LoginRequestMobileNewbyEmail"
+	loginTotpRoute      string = "/TOTPLogin"
+	accessTokenRoute    string = "/getAccessToken"
 	marginRoute         string = "/V3/Margin"
 	orderBookRoute      string = "/V2/OrderBook"
 	holdingsRoute       string = "/V2/Holding"
@@ -24,11 +26,12 @@ const (
 	orderPlacementRoute string = "/V1/OrderRequest"
 	orderStatusRoute    string = "/OrderStatus"
 	tradeInfoRoute      string = "/TradeInformation"
+	marketFeedRoute     string = "/MarketFeed"
 
 	// Request codes
 	marginRequestCode         string = "5PMarginV3"
 	orderBookRequestCode      string = "5POrdBkV2"
-	holdingsRequestCode       string = "5PHoldingV2"
+	holdingsRequestCode       string = "5PMarginV3" //"5PHoldingV2"
 	positionsRequestCode      string = "5PNPNWV1"
 	tradeInfoRequestCode      string = "5PTrdInfo"
 	orderStatusRequestCode    string = "5POrdStatus"
@@ -42,95 +45,167 @@ const (
 // Config is the app configuration
 type Config struct {
 	AppName       string
-	AppSource     string
+	AppSource     int64
 	UserID        string
 	Password      string
 	UserKey       string
 	EncryptionKey string
+
+	LocalIP  string
+	PublicIP string
 }
 
-// AppConfig is a reusable config struct
-type AppConfig struct {
-	config *Config
-	head   *payloadHead
-}
-
-//Client is the client configuration
+// Client is the client configuration
 type Client struct {
-	clientCode string
-	connection *http.Client
-	appConfig  *AppConfig
+	clientCode  string
+	connection  *http.Client
+	AccessToken string
+	config      *Config
 }
 
-// Init initializes the AppConfig struct
-func Init(c *Config) *AppConfig {
-	head := &payloadHead{
-		AppName:     c.AppName,
-		AppVer:      "1.0",
-		Key:         c.UserKey,
-		OsName:      "WEB",
-		RequestCode: "",
-		UserID:      c.UserID,
-		Password:    c.Password,
-	}
-	appConfig := &AppConfig{
-		config: c,
-		head:   head,
-	}
-	return appConfig
-}
+// Init initializes the Client struct
+func (c *Client) Init(conf *Config) error {
+	c.config = conf
 
-//Login logs in a client
-func Login(conf *AppConfig, email string, password string, dob string) (*Client, error) {
-	encryptedEmail := encrypt(conf.config.EncryptionKey, email)
-	encryptedPassword := encrypt(conf.config.EncryptionKey, password)
-	encryptedDOB := encrypt(conf.config.EncryptionKey, dob)
-	var client *Client
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return client, err
+		return err
 	}
-	httpClient := &http.Client{
+
+	c.connection = &http.Client{
 		Jar:     jar,
 		Timeout: 10 * time.Second,
 	}
+
+	return nil
+}
+
+func (c *Client) SetAccessToken(clientCode string, accessToken string) error {
+	c.AccessToken = accessToken
+	c.clientCode = clientCode
+
+	return nil
+}
+
+// Login logs in a client
+func (c *Client) Login(loginId string, pin string, totp string) error {
+
 	loginRequestBody := loginBody{
-		Email:          encryptedEmail,
-		Password:       encryptedPassword,
-		LocalIP:        "192.168.1.1",
-		PublicIP:       "192.168.1.1",
-		SerialNumber:   "",
-		MAC:            "",
-		MachineID:      "039377",
-		VersionNo:      "1.7",
-		RequestNo:      "1",
-		My2PIN:         encryptedDOB,
-		ConnectionType: "1",
+		Email:    loginId,
+		PIN:      pin,
+		LocalIP:  c.config.LocalIP,
+		PublicIP: c.config.PublicIP,
+		TOTP:     totp,
 	}
-	conf.head.RequestCode = loginRequestCode
+
+	head := &loginHead{
+		Key: c.config.UserKey,
+	}
+
 	loginDetails := loginPayload{
-		Head: conf.head,
+		Head: head,
 		Body: loginRequestBody,
 	}
 	jsonValue, _ := json.Marshal(loginDetails)
-	res, err := httpClient.Post(baseURL+loginRoute, contentType, bytes.NewBuffer(jsonValue))
+	res, err := c.connection.Post(baseURL+loginTotpRoute, contentType, bytes.NewBuffer(jsonValue))
 	if err != nil {
-		return client, err
+		return err
 	}
 	defer res.Body.Close()
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return client, err
+		return err
 	}
 	var b body
 	parseResBody(resBody, &b)
 	if b.ClientCode == "" || b.ClientCode == "INVALID CODE" {
-		return client, errors.New(b.Message)
+		return errors.New(b.Message)
 	}
-	client = &Client{
-		clientCode: b.ClientCode,
-		connection: httpClient,
-		appConfig:  conf,
+
+	c.AccessToken, err = c.getAccessToken(b.RequestToken)
+	if err != nil {
+		return err
 	}
-	return client, nil
+
+	fmt.Println(c.AccessToken)
+
+	c.clientCode = b.ClientCode
+
+	return nil
+}
+
+func (c *Client) getAccessToken(requestToken string) (string, error) {
+
+	accessTokenBody := requestAccessTokenBody{
+		UserId:       c.config.UserID,
+		RequestToken: requestToken,
+		EncryKey:     c.config.EncryptionKey,
+		LocalIP:      c.config.LocalIP,
+		PublicIP:     c.config.PublicIP,
+	}
+
+	head := &loginHead{
+		Key: c.config.UserKey,
+	}
+
+	loginDetails := accessTokenPayload{
+		Head: head,
+		Body: accessTokenBody,
+	}
+	jsonValue, _ := json.Marshal(loginDetails)
+	res, err := c.connection.Post(baseURL+accessTokenRoute, contentType, bytes.NewBuffer(jsonValue))
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	var b AccessTokenBody
+	parseResBody(resBody, &b)
+	if b.AccessToken == "" || b.AccessToken == "INVALID CODE" {
+		return "", errors.New(b.Message)
+	}
+
+	return b.AccessToken, nil
+}
+
+func (c *Client) buildHeader(requestCode string) payloadHead {
+	head := payloadHead{
+		Key:         c.config.UserKey,
+		AppVer:      "1.0",
+		AppName:     c.config.AppName,
+		OsName:      "WEB",
+		UserID:      c.config.UserID,
+		Password:    c.config.Password,
+		RequestCode: requestCode,
+	}
+	return head
+}
+
+func (c *Client) postRequest(payload any, route string) ([]byte, error) {
+	jsonValue, _ := json.Marshal(payload)
+
+	req, err := http.NewRequest("POST", baseURL+route, bytes.NewBuffer(jsonValue))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+
+	res, err := c.connection.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return resBody, nil
 }

@@ -1,10 +1,7 @@
 package go5paisa
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"strconv"
 	"time"
 )
@@ -41,13 +38,13 @@ const (
 	CURRENCY   = "U"
 )
 
-//Order Types
+// Order Types
 const (
 	BUY  = "BUY"
 	SELL = "MSELL"
 )
 
-//Order placed after hours
+// Order placed after hours
 const (
 	AFTERMARKET = "Y"
 	NORMAL      = "N"
@@ -137,8 +134,8 @@ func setDefaults(order *Order, c *Client) error {
 		}
 		order.ClientCode = c.clientCode
 		order.OrderRequesterCode = c.clientCode
-		order.PublicIP = "192.168.1.1"
-		order.AppSource, _ = strconv.ParseInt(c.appConfig.config.AppSource, 10, 64)
+		order.PublicIP = c.config.PublicIP
+		order.AppSource = c.config.AppSource
 		now := time.Now()
 		timestamp := strconv.FormatInt(now.UTC().Unix(), 10)
 		next := now.AddDate(0, 0, 1).UTC().Unix()
@@ -182,8 +179,8 @@ func setDefaultsModifyOrCancel(order *Order, c *Client) error {
 		order.Qty = order.TradedQty
 		order.ClientCode = c.clientCode
 		order.OrderRequesterCode = c.clientCode
-		order.PublicIP = "192.168.1.1"
-		order.AppSource, _ = strconv.ParseInt(c.appConfig.config.AppSource, 10, 64)
+		order.PublicIP = c.config.PublicIP
+		order.AppSource = c.config.AppSource
 		now := time.Now()
 		timestamp := strconv.FormatInt(now.UTC().Unix(), 10)
 		next := now.AddDate(0, 0, 1).UTC().Unix()
@@ -196,23 +193,30 @@ func setDefaultsModifyOrCancel(order *Order, c *Client) error {
 }
 
 func orderRequest(rmsResponse RMSResponse, order *Order, c *Client) (RMSResponse, error) {
-	c.appConfig.head.RequestCode = orderPlacementRequestCode
+	//c.appConfig.head.RequestCode = orderPlacementRequestCode
+
+	head := c.buildHeader(orderPlacementRequestCode)
+
 	payload := orderPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: order,
 	}
-	jsonValue, _ := json.Marshal(payload)
-	res, err := c.connection.Post(baseURL+orderPlacementRoute, contentType, bytes.NewBuffer(jsonValue))
+
+	// jsonValue, _ := json.Marshal(payload)
+	// res, err := c.connection.Post(baseURL+orderPlacementRoute, contentType, bytes.NewBuffer(jsonValue))
+	// if err != nil {
+	// 	return rmsResponse, err
+	// }
+	// defer res.Body.Close()
+	// resBody, err := ioutil.ReadAll(res.Body)
+
+	resBody, err := c.postRequest(payload, orderPlacementRoute)
 	if err != nil {
 		return rmsResponse, err
 	}
-	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return rmsResponse, err
-	}
+
 	parseResBody(resBody, &rmsResponse)
-	if rmsResponse.RMSResponseCode != 0 {
+	if rmsResponse.RMSResponseCode != 0 && rmsResponse.RMSResponseCode != 1 {
 		return rmsResponse, errors.New(rmsResponse.Message)
 	}
 	return rmsResponse, nil

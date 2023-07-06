@@ -1,8 +1,8 @@
 module github.com/5paisa/go5paisa
 
-go 1.14
+go 1.20
 
 require (
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
-	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
+	golang.org/x/crypto v0.10.0
+	golang.org/x/net v0.11.0
 )
