@@ -49,12 +49,13 @@ func parseResponseBody(resBody []byte, obj Positions) {
 // GetPositions fetches margins of the user
 func (c *Client) GetPositions() (Positions, error) {
 	var positions Positions
-	c.appConfig.head.RequestCode = positionsRequestCode
+	// c.appConfig.head.RequestCode =
+	head := c.buildHeader(positionsRequestCode)
 	payloadBody := genericPayloadBody{
 		ClientCode: c.clientCode,
 	}
 	payload := genericPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: payloadBody,
 	}
 	jsonValue, _ := json.Marshal(payload)

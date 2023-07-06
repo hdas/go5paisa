@@ -18,13 +18,14 @@ type TradeInfoList struct {
 // GetTradeInformation fetches order book of the user
 func (c *Client) GetTradeInformation(tradeList TradeInfoList) (TradeInfoList, error) {
 	var tradeReslist TradeInfoList
-	c.appConfig.head.RequestCode = tradeInfoRequestCode
+	// c.appConfig.head.RequestCode =
+	head := c.buildHeader(tradeInfoRequestCode)
 	payloadBody := orderStatusPayloadBody{
 		ClientCode: c.clientCode,
 		OrdList:    tradeList.TradeList,
 	}
 	payload := orderStatusPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: payloadBody,
 	}
 	jsonValue, _ := json.Marshal(payload)

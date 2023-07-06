@@ -10,23 +10,34 @@ type payloadHead struct {
 	Password    string `json:"password"`
 }
 
+type loginHead struct {
+	Key string `json:"Key"`
+}
+
 type loginBody struct {
-	Email          string `json:"Email_id"`
-	Password       string `json:"Password"`
-	LocalIP        string `json:"LocalIP"`
-	PublicIP       string `json:"PublicIP"`
-	SerialNumber   string `json:"HDSerailNumber"`
-	MAC            string `json:"MACAddress"`
-	MachineID      string `json:"MachineID"`
-	VersionNo      string `json:"VersionNo"`
-	RequestNo      string `json:"RequestNo"`
-	My2PIN         string `json:"My2PIN"`
-	ConnectionType string `json:"ConnectionType"`
+	Email    string `json:"Email_ID"`
+	PIN      string `json:"PIN"`
+	LocalIP  string `json:"LocalIP"`
+	PublicIP string `json:"PublicIP"`
+	TOTP     string `json:"TOTP"`
+}
+
+type requestAccessTokenBody struct {
+	UserId       string `json:"UserId"`
+	RequestToken string `json:"RequestToken"`
+	EncryKey     string `json:"EncryKey"`
+	LocalIP      string `json:"LocalIP"`
+	PublicIP     string `json:"PublicIP"`
 }
 
 type loginPayload struct {
-	Head *payloadHead `json:"head"`
-	Body loginBody    `json:"body"`
+	Head *loginHead `json:"head"`
+	Body loginBody  `json:"body"`
+}
+
+type accessTokenPayload struct {
+	Head *loginHead             `json:"head"`
+	Body requestAccessTokenBody `json:"body"`
 }
 
 type genericPayload struct {

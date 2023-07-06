@@ -1,9 +1,7 @@
 package go5paisa
 
 import (
-	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 )
 
@@ -66,21 +64,19 @@ func parseOrderBookResponseBody(resBody []byte, obj OrderBook) {
 // GetOrderBook fetches order book of the user
 func (c *Client) GetOrderBook() (OrderBook, error) {
 	var orderBook OrderBook
-	c.appConfig.head.RequestCode = orderBookRequestCode
+
+	head := c.buildHeader(orderBookRequestCode)
+
 	payloadBody := genericPayloadBody{
 		ClientCode: c.clientCode,
 	}
 	payload := genericPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: payloadBody,
 	}
-	jsonValue, _ := json.Marshal(payload)
-	res, err := c.connection.Post(baseURL+orderBookRoute, contentType, bytes.NewBuffer(jsonValue))
-	if err != nil {
-		return orderBook, err
-	}
-	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+
+	resBody, err := c.postRequest(payload, orderBookRoute)
+
 	if err != nil {
 		return orderBook, err
 	}

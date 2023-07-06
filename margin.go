@@ -45,12 +45,15 @@ func parseMarginResponseBody(resBody []byte, obj EquityMargin) {
 // GetMargin fetches margins of the user
 func (c *Client) GetMargin() (EquityMargin, error) {
 	var margin EquityMargin
-	c.appConfig.head.RequestCode = marginRequestCode
+	//c.appConfig.head.RequestCode = marginRequestCode
 	payloadBody := genericPayloadBody{
 		ClientCode: c.clientCode,
 	}
+
+	head := c.buildHeader("5PMarginV3")
+
 	payload := genericPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: payloadBody,
 	}
 	jsonValue, _ := json.Marshal(payload)

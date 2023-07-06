@@ -42,13 +42,15 @@ type OrderStatusReqList struct {
 // GetOrderStatus fetches order book of the user
 func (c *Client) GetOrderStatus(orderList OrderStatusReqList) (OrderResponseList, error) {
 	var orderStatus OrderResponseList
-	c.appConfig.head.RequestCode = orderStatusRequestCode
+	//c.appConfig.head.RequestCode =
+
+	head := c.buildHeader(orderStatusRequestCode)
 	payloadBody := orderStatusPayloadBody{
 		ClientCode: c.clientCode,
 		OrdList:    orderList.OrderStatusList,
 	}
 	payload := orderStatusPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: payloadBody,
 	}
 	jsonValue, _ := json.Marshal(payload)

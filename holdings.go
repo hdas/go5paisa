@@ -1,9 +1,7 @@
 package go5paisa
 
 import (
-	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 )
 
@@ -44,21 +42,18 @@ func parsHoldingsResponse(resBody []byte, obj Holdings) {
 // GetHoldings fetches holdings of the user
 func (c *Client) GetHoldings() (Holdings, error) {
 	var holdings Holdings
-	c.appConfig.head.RequestCode = holdingsRequestCode
 	payloadBody := genericPayloadBody{
 		ClientCode: c.clientCode,
 	}
+
+	head := c.buildHeader(holdingsRequestCode)
+
 	payload := genericPayload{
-		Head: c.appConfig.head,
+		Head: &head,
 		Body: payloadBody,
 	}
-	jsonValue, _ := json.Marshal(payload)
-	res, err := c.connection.Post(baseURL+holdingsRoute, contentType, bytes.NewBuffer(jsonValue))
-	if err != nil {
-		return holdings, err
-	}
-	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+
+	resBody, err := c.postRequest(payload, holdingsRoute)
 	if err != nil {
 		return holdings, err
 	}
