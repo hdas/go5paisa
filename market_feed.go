@@ -112,3 +112,32 @@ func (c *Client) GetMarketFeed(request MarketFeedRequest) (MarketFeedResponse, e
 
 	return feed, nil
 }
+
+func (c *Client) GetMarketFeedV1(request MarketFeedRequest) (MarketFeedResponse, error) {
+	var feed MarketFeedResponse
+
+	epochTime := time.Now().UnixNano() / int64(time.Millisecond)
+	dateString := fmt.Sprintf("/Date(%d)/", epochTime)
+
+	request.LastRequestTime = dateString
+
+	head := c.buildHeader("5PMF")
+
+	payload := marketFeedPayload{
+		Head: &head,
+		Body: request,
+	}
+
+	resBody, err := c.postRequest(payload, marketFeedRouteV1)
+	if err != nil {
+		return feed, err
+	}
+
+	parseResBody(resBody, &feed)
+
+	if err := json.Unmarshal(resBody, &feed); err != nil {
+		log.Fatal("Error parsing JSON response:", err)
+	}
+
+	return feed, nil
+}

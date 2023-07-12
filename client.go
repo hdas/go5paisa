@@ -27,6 +27,7 @@ const (
 	orderStatusRoute    string = "/OrderStatus"
 	tradeInfoRoute      string = "/TradeInformation"
 	marketFeedRoute     string = "/MarketFeed"
+	marketFeedRouteV1   string = "/V1/MarketFeed"
 
 	// Request codes
 	marginRequestCode         string = "5PMarginV3"
