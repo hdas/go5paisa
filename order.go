@@ -202,14 +202,6 @@ func orderRequest(rmsResponse RMSResponse, order *Order, c *Client) (RMSResponse
 		Body: order,
 	}
 
-	// jsonValue, _ := json.Marshal(payload)
-	// res, err := c.connection.Post(baseURL+orderPlacementRoute, contentType, bytes.NewBuffer(jsonValue))
-	// if err != nil {
-	// 	return rmsResponse, err
-	// }
-	// defer res.Body.Close()
-	// resBody, err := ioutil.ReadAll(res.Body)
-
 	resBody, err := c.postRequest(payload, orderPlacementRoute)
 	if err != nil {
 		return rmsResponse, err

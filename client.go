@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -31,7 +31,7 @@ const (
 
 	// Request codes
 	marginRequestCode         string = "5PMarginV3"
-	orderBookRequestCode      string = "5POrdBkV2"
+	orderBookRequestCode      string = "5POrdBkV3"
 	holdingsRequestCode       string = "5PMarginV3" //"5PHoldingV2"
 	positionsRequestCode      string = "5PNPNWV1"
 	tradeInfoRequestCode      string = "5PTrdInfo"
@@ -113,7 +113,7 @@ func (c *Client) Login(loginId string, pin string, totp string) error {
 		return err
 	}
 	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (c *Client) getAccessToken(requestToken string) (string, error) {
 		return "", err
 	}
 	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
@@ -188,6 +188,8 @@ func (c *Client) buildHeader(requestCode string) payloadHead {
 func (c *Client) postRequest(payload any, route string) ([]byte, error) {
 	jsonValue, _ := json.Marshal(payload)
 
+	// fmt.Println(string(jsonValue))
+
 	req, err := http.NewRequest("POST", baseURL+route, bytes.NewBuffer(jsonValue))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
@@ -203,7 +205,7 @@ func (c *Client) postRequest(payload any, route string) ([]byte, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}

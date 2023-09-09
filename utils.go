@@ -2,7 +2,6 @@ package go5paisa
 
 import (
 	"encoding/json"
-	"log"
 )
 
 type body struct {
@@ -25,7 +24,7 @@ func parseResBody(resBody []byte, obj interface{}) {
 	var body responseBody
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {
-		log.Fatal("Error parsing JSON response:", err)
+		panic(err)
 	}
 }
 
@@ -33,6 +32,6 @@ func parseAccessTokenResponse(resBody []byte, obj interface{}) {
 	var body responseBody
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {
-		log.Fatal("Error parsing JSON response:", err)
+		panic(err)
 	}
 }

@@ -3,8 +3,7 @@ package go5paisa
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"io"
 )
 
 // Margin represents a margin object returned in the JSON response
@@ -38,7 +37,7 @@ func parseMarginResponseBody(resBody []byte, obj EquityMargin) {
 	var body marginResponseData
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {
-		log.Fatal("Error parsing JSON response:", err)
+		panic(err)
 	}
 }
 
@@ -62,7 +61,7 @@ func (c *Client) GetMargin() (EquityMargin, error) {
 		return margin, err
 	}
 	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return margin, err
 	}

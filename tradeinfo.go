@@ -3,7 +3,7 @@ package go5paisa
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	// "log"
 )
 
@@ -34,7 +34,7 @@ func (c *Client) GetTradeInformation(tradeList TradeInfoList) (TradeInfoList, er
 		return tradeReslist, err
 	}
 	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return tradeReslist, err
 	}
