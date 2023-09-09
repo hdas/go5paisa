@@ -3,8 +3,7 @@ package go5paisa
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"io"
 )
 
 // Position represents a position object returned in the JSON response
@@ -42,7 +41,7 @@ func parseResponseBody(resBody []byte, obj Positions) {
 	var body positionResponseData
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {
-		log.Fatal("Error parsing JSON response:", err)
+		panic(err)
 	}
 }
 
@@ -64,7 +63,7 @@ func (c *Client) GetPositions() (Positions, error) {
 		return positions, err
 	}
 	defer res.Body.Close()
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return positions, err
 	}

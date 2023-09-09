@@ -2,7 +2,7 @@ package go5paisa
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 )
 
 // OrderDetail represents details of an order in the OrderBook
@@ -57,7 +57,7 @@ func parseOrderBookResponseBody(resBody []byte, obj OrderBook) {
 	var body orderBookResponseData
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {
-		log.Fatal("Error parsing JSON response:", err)
+		panic(err)
 	}
 }
 
@@ -77,9 +77,13 @@ func (c *Client) GetOrderBook() (OrderBook, error) {
 
 	resBody, err := c.postRequest(payload, orderBookRoute)
 
+	fmt.Println(string(resBody))
+
 	if err != nil {
 		return orderBook, err
 	}
+
 	parseResBody(resBody, &orderBook)
+
 	return orderBook, nil
 }

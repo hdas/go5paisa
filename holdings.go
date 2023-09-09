@@ -2,7 +2,6 @@ package go5paisa
 
 import (
 	"encoding/json"
-	"log"
 )
 
 // Holding represents a single holding
@@ -35,7 +34,7 @@ func parsHoldingsResponse(resBody []byte, obj Holdings) {
 	var body responseData
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {
-		log.Fatal("Error parsing JSON response:", err)
+		panic(err)
 	}
 }
 
