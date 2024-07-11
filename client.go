@@ -25,7 +25,7 @@ const (
 	positionsRoute      string = "/V1/NetPositionNetWise"
 	orderPlacementRoute string = "/V1/OrderRequest"
 	orderStatusRoute    string = "/OrderStatus"
-	tradeInfoRoute      string = "/TradeInformation"
+	tradeBookRoute      string = "/V1/TradeBook"
 	marketFeedRoute     string = "/MarketFeed"
 	marketFeedRouteV1   string = "/V1/MarketFeed"
 
@@ -34,7 +34,7 @@ const (
 	orderBookRequestCode      string = "5POrdBkV3"
 	holdingsRequestCode       string = "5PMarginV3" //"5PHoldingV2"
 	positionsRequestCode      string = "5PNPNWV1"
-	tradeInfoRequestCode      string = "5PTrdInfo"
+	tradeBookRequestCode      string = "5PTrdBkV1"
 	orderStatusRequestCode    string = "5POrdStatus"
 	orderPlacementRequestCode string = "5POrdReq"
 	loginRequestCode          string = "5PLoginV2"

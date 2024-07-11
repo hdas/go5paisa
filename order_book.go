@@ -2,7 +2,6 @@ package go5paisa
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // OrderDetail represents details of an order in the OrderBook
@@ -76,9 +75,7 @@ func (c *Client) GetOrderBook() (OrderBook, error) {
 	}
 
 	resBody, err := c.postRequest(payload, orderBookRoute)
-
-	fmt.Println(string(resBody))
-
+	//fmt.Println(string(resBody))
 	if err != nil {
 		return orderBook, err
 	}
