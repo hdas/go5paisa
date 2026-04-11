@@ -182,7 +182,7 @@ func (c *Client) InitMarketFeedWebSocket(stocks *[]MarketFeedRequestDataV3, call
 	signal.Notify(interrupt, os.Interrupt)
 
 	// Connect to the WebSocket server
-	serverURL := "wss://openfeed.5paisa.com/Feeds"
+	serverURL := "wss://openfeed.5paisa.com/feeds"
 
 	serverURL = serverURL + "/api/chat?Value1=" + c.AccessToken + "|" + c.clientCode
 
