@@ -30,7 +30,7 @@ type Holdings struct {
 	Data []Holding `json:"Data"`
 }
 
-func parsHoldingsResponse(resBody []byte, obj Holdings) {
+func parseHoldingsResponse(resBody []byte, obj Holdings) {
 	var body responseData
 	body.Body = obj
 	if err := json.Unmarshal(resBody, &body); err != nil {

@@ -41,7 +41,7 @@ const (
 // Order Types
 const (
 	BUY  = "BUY"
-	SELL = "MSELL"
+	SELL = "SELL"
 )
 
 // Order placed after hours
@@ -103,19 +103,19 @@ func setDefaults(order *Order, c *Client) error {
 	// TODO: stronger check
 	case order.Exchange == "":
 		return &InvalidOrderError{
-			Err: errors.New("Invalid exchange, valid exchange types are NSE, BSE and MCX "),
+			Err: errors.New("invalid exchange, valid exchange types are NSE, BSE and MCX "),
 		}
 	case order.OrderType == "":
 		return &InvalidOrderError{
-			Err: errors.New("Invalid Order type, valid order types are BUY and MSELL"),
+			Err: errors.New("invalid Order type, valid order types are BUY and SELL"),
 		}
 	case order.Qty == 0:
 		return &InvalidOrderError{
-			Err: errors.New("Invalid qty"),
+			Err: errors.New("invalid qty"),
 		}
 	case order.ScripCode == 0:
 		return &InvalidOrderError{
-			Err: errors.New("Invalid scrip code"),
+			Err: errors.New("invalid scrip code"),
 		}
 
 	default:
